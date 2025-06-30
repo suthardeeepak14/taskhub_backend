@@ -1,0 +1,55 @@
+# Python-specific ignores
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environment
+venv/
+.venv/
+env/
+ENV/
+
+# Environment variables
+.env
+.env.local
+.env.*
+!.env.example  # Keep example env files
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.sublime-workspace
+
+# Dependency directories
+.python-version
+pip-selfcheck.json
+
+# Build and distribution files
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Testing and coverage
+.coverage
+htmlcov/
+.pytest_cache/
+test-results.xml
+
+# Database files
+*.sqlite
+*.sqlite3
+pgdata/
+
+# Logs
+*.log
+logs/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db

@@ -1,0 +1,117 @@
+from pydantic import BaseModel,EmailStr
+from uuid import UUID
+from typing import Optional, List
+from datetime import date, datetime
+
+class TaskCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    status: Optional[str] = "pending"
+    priority: Optional[str] = "medium"
+    due_date: Optional[date] = None
+    assignee: Optional[str] = None
+    project_id: Optional[UUID] = None 
+
+class Task(TaskCreate):
+    id: UUID
+    created_at: datetime
+    updated_at: datetime
+    class Config:   from_attributes = True
+
+
+class TaskUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    status: Optional[str] = None
+    priority: Optional[str] = None
+    assignee: Optional[str] = None
+    due_date: Optional[str] = None
+
+
+class TaskRead(BaseModel):
+    id: UUID
+    title: str
+    status: str
+    assignee: Optional[str]
+    priority: Optional[str]
+
+    class Config:
+        from_attributes = True
+
+
+class ProjectBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+    status: Optional[str] = "pending"
+    due_date: Optional[date] = None
+
+class ProjectCreate(ProjectBase):
+    pass
+
+class Project(ProjectBase):
+    id: UUID
+    owner: str
+    class Config: from_attributes = True
+
+class ProjectUpdate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    status: Optional[str] = None
+    due_date: Optional[date] = None
+
+
+class ProjectRead(BaseModel):
+    id: int
+    name: str
+    description: Optional[str]
+    status: str
+    due_date: Optional[str]
+    tasks: List[TaskRead] = []  # ✅ Important: Include tasks list in project response
+
+    class Config:
+        from_attributes = True
+
+class ProjectOut(BaseModel):
+    id: UUID
+    name: str
+    description: Optional[str] = None
+    status: str
+    due_date: Optional[date]
+    tasks: List[TaskRead] = []  # ✅ Important: Include task list here
+
+    class Config:
+        from_attributes = True
+
+
+class CommentBase(BaseModel):
+    content: str
+    author: str
+
+class CommentCreate(CommentBase):
+    pass
+
+class Comment(CommentBase):
+    id: UUID
+    created_at: datetime
+    task_id: UUID
+    class Config:
+        from_attributes = True
+
+class UserCreate(BaseModel):
+    username: str
+    email: EmailStr
+    password: str
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+class UserResponse(BaseModel):
+    id: UUID
+    username: str
+    email: str
+
+    class Config:
+        from_attributes = True
+
+
