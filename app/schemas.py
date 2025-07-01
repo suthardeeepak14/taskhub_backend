@@ -51,6 +51,7 @@ class ProjectCreate(ProjectBase):
 class Project(ProjectBase):
     id: UUID
     owner: str
+    created_at: datetime 
     class Config: from_attributes = True
 
 class ProjectUpdate(BaseModel):
@@ -76,7 +77,9 @@ class ProjectOut(BaseModel):
     name: str
     description: Optional[str] = None
     status: str
+    owner: str 
     due_date: Optional[date]
+    created_at: datetime
     tasks: List[TaskRead] = []  # ✅ Important: Include task list here
 
     class Config:

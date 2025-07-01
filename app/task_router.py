@@ -67,6 +67,8 @@ def get_tasks_by_project(project_id: UUID, db: Session = Depends(get_db)):
     return task_repo.get_tasks_by_project(db, project_id)
 
 
+
+
 @router.put("/projects/{project_id}/tasks/{task_id}", response_model=schemas.Task)
 def update_task_in_project(
     project_id: UUID,

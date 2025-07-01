@@ -13,6 +13,7 @@ class Project(Base):
     owner = Column(String, nullable=False)
     status = Column(String, default="pending")
     due_date = Column(Date)
+    created_at = Column(DateTime, default=datetime.utcnow)
     tasks = relationship("Task", back_populates="project", cascade="all, delete-orphan")
 
 class Task(Base):
