@@ -113,8 +113,15 @@ class UserResponse(BaseModel):
     id: UUID
     username: str
     email: str
+    role: str 
 
     class Config:
         from_attributes = True
 
 
+class UserOut(BaseModel):
+    id: int
+    name: str
+    email: EmailStr
+    class Config:
+        form_attributes = True

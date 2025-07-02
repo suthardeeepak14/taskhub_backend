@@ -8,6 +8,7 @@ from app.services import project_service
 from app.schemas import ProjectOut
 from app.dependencies import get_current_user  # ✅ Import
 from app.models import User  # ✅ Import
+from app.dependencies import require_admin  # ✅ Import for admin-only routes
 
 router = APIRouter()
 
@@ -16,7 +17,7 @@ router = APIRouter()
 def create_project(
     p: schemas.ProjectCreate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
 ):
     return project_service.create_project(db, p, owner=current_user.username)
 
@@ -42,6 +43,7 @@ def update_project(
     project_id: UUID,
     updated_data: schemas.ProjectUpdate,
     db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin),
 ):
     project = project_service.update_project_details(db, project_id, updated_data)
     if not project:
@@ -51,8 +53,9 @@ def update_project(
 
 # ✅ Delete Project
 @router.delete("/projects/{project_id}", response_model=schemas.Project)
-def delete_project(project_id: UUID, db: Session = Depends(get_db)):
+def delete_project(project_id: UUID, db: Session = Depends(get_db),current_user: models.User = Depends(require_admin), ):
     deleted_project = project_service.delete_project_by_id(db, project_id)
+
     if not deleted_project:
         raise HTTPException(status_code=404, detail="Project not found")
     return deleted_project
