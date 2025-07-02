@@ -7,13 +7,21 @@ from app.database import Base
 
 class Project(Base):
     __tablename__ = "projects"
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String, nullable=False)
-    description = Column(Text)
-    owner = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
     status = Column(String, default="pending")
-    due_date = Column(Date)
+    due_date = Column(Date, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    # ✅ Store all owners as comma-separated usernames (Example: "admin,deepak")
+    owners = Column(String, nullable=True)
+
+    # ✅ Store all members as comma-separated usernames (Example: "user1,user2")
+    members = Column(String, nullable=True)
+
+    # ✅ Relationship with Tasks
     tasks = relationship("Task", back_populates="project", cascade="all, delete-orphan")
 
 class Task(Base):
@@ -28,6 +36,8 @@ class Task(Base):
     project_id = Column(UUID(as_uuid=True), ForeignKey("projects.id"),nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    
     project = relationship("Project", back_populates="tasks")
     comments = relationship("Comment", back_populates="task", cascade="all, delete-orphan")
 

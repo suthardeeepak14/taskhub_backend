@@ -1,13 +1,14 @@
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from uuid import UUID
 from app.database import get_db
 from app.auth import decode_access_token, oauth2_scheme
 from app.models import User, Project
 
-# ✅ Get Current User from Token
+# ✅ Get current user from token
 def get_current_user(
     db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme)
+    token: str = Depends(oauth2_scheme),
 ) -> User:
     user_id = decode_access_token(token)
     if user_id is None:
@@ -16,42 +17,77 @@ def get_current_user(
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
-
     return user
 
-# ✅ Check if User is Admin
-def require_admin(current_user: User = Depends(get_current_user)):
+
+# ✅ Admin Check
+def require_admin(
+    current_user: User = Depends(get_current_user),
+):
     if current_user.role != "admin":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admins only")
+        raise HTTPException(status_code=403, detail="Admins only")
     return current_user
 
-# ✅ Check if User is Project Owner
-def require_project_owner(
-    project_id: str,
+
+# ✅ Helper: Check if user is project owner
+def is_project_owner(project: Project, current_user: User):
+    owners = (project.owners or "").split(",")
+    return current_user.username in owners
+
+
+# ✅ Helper: Check if user is project member
+def is_project_member(project: Project, current_user: User):
+    members = (project.members or "").split(",")
+    return current_user.username in members
+
+
+# ✅ Admin or Owner check (For edit, delete project)
+def require_admin_or_owner(
+    project_id: UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     project = db.query(Project).filter(Project.id == project_id).first()
     if not project:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+        raise HTTPException(status_code=404, detail="Project not found")
 
-    if project.owner != current_user.username and current_user.role != "admin":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not the project owner or admin")
-    return current_user
+    if current_user.role == "admin" or is_project_owner(project, current_user):
+        return current_user
 
-# ✅ Check if User is Member or Owner
-def require_project_member_or_owner(
-    project_id: str,
+    raise HTTPException(status_code=403, detail="Only admin or project owner can perform this action")
+
+
+# ✅ View access check (Admin, Owner, or Member)
+def require_project_view_access(
+    project_id: UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     project = db.query(Project).filter(Project.id == project_id).first()
     if not project:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+        raise HTTPException(status_code=404, detail="Project not found")
 
-    # If user is owner or in members list
-    is_member = current_user.username in project.members.split(",") if project.members else False
-    if project.owner != current_user.username and not is_member and current_user.role != "admin":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not authorized on this project")
+    if (
+        current_user.role == "admin"
+        or is_project_owner(project, current_user)
+        or is_project_member(project, current_user)
+    ):
+        return current_user
+
+    raise HTTPException(status_code=403, detail="You are not authorized to view this project")
+
+
+# ✅ Only project owners can modify members or owners
+def require_owner_for_membership_change(
+    project_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    if not is_project_owner(project, current_user):
+        raise HTTPException(status_code=403, detail="Only project owners can modify members or owners")
 
     return current_user
