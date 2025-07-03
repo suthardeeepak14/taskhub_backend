@@ -141,3 +141,12 @@ class UserOut(BaseModel):
     
     class Config:
         form_attributes = True
+
+
+class UserPublic(BaseModel):
+    id: str
+    username: str
+    email: str
+
+    class Config:
+         form_attributes = True

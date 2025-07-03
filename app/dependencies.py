@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 from app.database import get_db
 from app.auth import decode_access_token, oauth2_scheme
-from app.models import User, Project
+from app.models import User, Project, Task
 
 # ✅ Get current user from token
 def get_current_user(
@@ -91,3 +91,64 @@ def require_owner_for_membership_change(
         raise HTTPException(status_code=403, detail="Only project owners can modify members or owners")
 
     return current_user
+
+
+def require_task_update_access(
+    task_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    task = db.query(Task).filter(Task.id == task_id).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    project = db.query(Project).filter(Project.id == task.project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    if current_user.role == "admin":
+        return current_user
+
+    if task.assignee != current_user.username and not is_project_owner(project, current_user):
+        raise HTTPException(status_code=403, detail="Not authorized to update this task")
+
+    return current_user
+
+# ✅ Only Admin or Project Owner can delete task
+def require_admin_or_owner_by_task_id(
+    task_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    task = db.query(Task).filter(Task.id == task_id).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    project = db.query(Project).filter(Project.id == task.project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    if current_user.role != "admin" and not is_project_owner(project, current_user):
+        raise HTTPException(status_code=403, detail="Only admin or project owner can delete this task")
+
+    return current_user
+
+
+
+def require_project_participant(
+    project_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    if (
+        current_user.role == "admin"
+        or is_project_owner(project, current_user)
+        or is_project_member(project, current_user)
+    ):
+        return current_user
+
+    raise HTTPException(status_code=403, detail="Only project participants can create tasks")

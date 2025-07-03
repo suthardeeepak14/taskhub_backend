@@ -104,3 +104,21 @@ def update_project_owners(
 ):
     require_owner_for_membership_change(project_id, db, current_user)
     return project_service.update_project_owners(db, project_id, owners_update.owners)
+
+# ✅ Get All Members (Members + Owners) of a Project
+@router.get("/projects/{project_id}/members", response_model=List[schemas.UserPublic])
+def get_project_members(
+    project_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    project = db.query(models.Project).filter(models.Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    # Combine members and owners, remove duplicates and empty strings
+    usernames = (project.members or "").split(",") + (project.owners or "").split(",")
+    usernames = list(set(filter(None, usernames)))
+
+    users = db.query(models.User).filter(models.User.username.in_(usernames)).all()
+    return users
