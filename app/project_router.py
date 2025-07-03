@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from uuid import UUID
 from typing import List
-
+from sqlalchemy.orm import joinedload
 from app import models, schemas
 from app.database import get_db
 from app.services import project_service
@@ -51,7 +51,6 @@ def get_project_by_id(
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     return project
-
 
 # ✅ Update Project (Only Admin or Owner)
 @router.put("/projects/{project_id}", response_model=schemas.Project)
@@ -117,8 +116,8 @@ def get_project_members(
         raise HTTPException(status_code=404, detail="Project not found")
 
     # Combine members and owners, remove duplicates and empty strings
-    usernames = (project.members or "").split(",") + (project.owners or "").split(",")
-    usernames = list(set(filter(None, usernames)))
+    usernames = (project.members or []) + (project.owners or [])
+    usernames = list(set(usernames))  # Remove duplicates
 
     users = db.query(models.User).filter(models.User.username.in_(usernames)).all()
     return users

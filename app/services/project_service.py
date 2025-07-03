@@ -10,7 +10,8 @@ def create_project(db: Session, project_data: schemas.ProjectCreate, owner: str)
         description=project_data.description,
         status=project_data.status or "pending",
         due_date=project_data.due_date,
-        owners=owner  # ✅ First owner = creator username
+        owners=[owner],  # ✅ Store as list, not string
+        members=[],      # ✅ Optional: start with empty list
     )
     db.add(new_project)
     db.commit()
@@ -20,19 +21,29 @@ def create_project(db: Session, project_data: schemas.ProjectCreate, owner: str)
 
 # ✅ Get All Projects (For Admins)
 def get_all_projects(db: Session):
+    projects = db.query(models.Project).all()
+    
+    return projects
+def get_all_projects(db: Session):
     return db.query(models.Project).all()
 
 
 # ✅ Get Projects for Specific User (Owner or Member)
 def get_user_related_projects(db: Session, username: str):
     return db.query(models.Project).filter(
-        (models.Project.owners.contains(username)) | (models.Project.members.contains(username))
+        (models.Project.owners.any(username)) | (models.Project.members.any(username))
     ).all()
+
 
 
 # ✅ Get Single Project By ID
 def get_project_by_id(db: Session, project_id: UUID):
-    return db.query(models.Project).filter(models.Project.id == project_id).first()
+    project = db.query(models.Project).filter(models.Project.id == project_id).first()
+
+   
+
+    return project
+
 
 
 # ✅ Update Project Details (Only by Owner or Admin)
@@ -64,7 +75,7 @@ def update_project_members(db: Session, project_id: UUID, members: List[str]):
     if not project:
         return None
 
-    project.members = ",".join(members)
+    project.members = members  # ✅ Directly assign list
     db.commit()
     db.refresh(project)
     return {"msg": "Project members updated"}
@@ -76,7 +87,7 @@ def update_project_owners(db: Session, project_id: UUID, owners: List[str]):
     if not project:
         return None
 
-    project.owners = ",".join(owners)
+    project.owners = owners  # ✅ Directly assign list
     db.commit()
     db.refresh(project)
     return {"msg": "Project owners updated"}

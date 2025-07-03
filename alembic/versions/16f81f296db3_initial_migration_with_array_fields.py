@@ -1,19 +1,19 @@
-"""Add created_at column to projects
+"""Initial migration with ARRAY fields
 
-Revision ID: 85ec2e931d83
-Revises: 16fe7d185883
-Create Date: 2025-07-01 15:42:56.017376
+Revision ID: 16f81f296db3
+Revises: 
+Create Date: 2025-07-03 21:25:49.345249
 
 """
 from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
-
+from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = '85ec2e931d83'
-down_revision: Union[str, None] = '16fe7d185883'
+revision: str = '16f81f296db3'
+down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -24,9 +24,10 @@ def upgrade() -> None:
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('description', sa.Text(), nullable=True),
-    sa.Column('owner', sa.String(), nullable=False),
     sa.Column('status', sa.String(), nullable=True),
     sa.Column('due_date', sa.Date(), nullable=True),
+    sa.Column('members', postgresql.ARRAY(sa.String()), nullable=True),
+    sa.Column('owners', postgresql.ARRAY(sa.String()), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
@@ -38,6 +39,7 @@ def upgrade() -> None:
     sa.Column('priority', sa.String(), nullable=True),
     sa.Column('due_date', sa.Date(), nullable=True),
     sa.Column('assignee', sa.String(), nullable=True),
+    sa.Column('created_by', sa.String(), nullable=False),
     sa.Column('project_id', sa.UUID(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),

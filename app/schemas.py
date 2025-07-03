@@ -18,7 +18,7 @@ class Task(TaskCreate):
     created_at: datetime
     updated_at: datetime
     class Config:
-        from_attributes = True
+       orm_mode = True 
 
 class TaskUpdate(BaseModel):
     title: Optional[str] = None
@@ -26,7 +26,8 @@ class TaskUpdate(BaseModel):
     status: Optional[str] = None
     priority: Optional[str] = None
     assignee: Optional[str] = None
-    due_date: Optional[str] = None
+    due_date: Optional[date] = None
+
 
 class TaskRead(BaseModel):
     id: UUID
@@ -36,7 +37,7 @@ class TaskRead(BaseModel):
     priority: Optional[str]
 
     class Config:
-        from_attributes = True
+       orm_mode = True 
 
 # ✅ Project Schemas
 class ProjectBase(BaseModel):
@@ -60,12 +61,12 @@ class Project(BaseModel):
     description: Optional[str]
     status: Optional[str]
     due_date: Optional[date]
-    owners: Optional[str]
-    members: Optional[str]
+    owners: List[str] = []
+    members: List[str] = []
     created_at: datetime
 
     class Config:
-        from_attributes = True
+       orm_mode = True 
 
 class ProjectRead(BaseModel):
     id: UUID
@@ -73,26 +74,26 @@ class ProjectRead(BaseModel):
     description: Optional[str]
     status: str
     due_date: Optional[date]
-    owners: Optional[str]
-    members: Optional[str]
+    owners: List[str] = []
+    members: List[str] = []
     tasks: List[TaskRead] = []
 
     class Config:
-        from_attributes = True
+       orm_mode = True 
 
 class ProjectOut(BaseModel):
     id: UUID
     name: str
     description: Optional[str]
     status: str
-    owners: Optional[str]
-    members: Optional[str]
+    owners: List[str] = []
+    members: List[str] = []
     due_date: Optional[date]
     created_at: datetime
     tasks: List[TaskRead] = []
 
     class Config:
-        from_attributes = True
+       orm_mode = True 
 
 class ProjectMembersUpdate(BaseModel):
     members: List[str]
@@ -113,7 +114,7 @@ class Comment(CommentBase):
     created_at: datetime
     task_id: UUID
     class Config:
-        from_attributes = True
+       orm_mode = True 
 
 # ✅ User Schemas
 class UserCreate(BaseModel):
@@ -140,7 +141,7 @@ class UserOut(BaseModel):
     email: EmailStr
     
     class Config:
-        form_attributes = True
+        orm_mode = True 
 
 
 class UserPublic(BaseModel):
@@ -149,4 +150,4 @@ class UserPublic(BaseModel):
     email: str
 
     class Config:
-         form_attributes = True
+         orm_mode = True 

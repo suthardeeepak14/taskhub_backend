@@ -31,13 +31,14 @@ def require_admin(
 
 # ✅ Helper: Check if user is project owner
 def is_project_owner(project: Project, current_user: User):
-    owners = (project.owners or "").split(",")
+    owners = project.owners or []
     return current_user.username in owners
+
 
 
 # ✅ Helper: Check if user is project member
 def is_project_member(project: Project, current_user: User):
-    members = (project.members or "").split(",")
+    members = project.members or []
     return current_user.username in members
 
 

@@ -3,8 +3,9 @@ from uuid import UUID
 from app import models, schemas
 from fastapi import HTTPException
 
-def create_task(db: Session, data: schemas.TaskCreate):
+def create_task(db: Session, data: schemas.TaskCreate,creator: str):
     task_data = data.dict()
+    task_data["created_by"] = creator 
     if task_data.get("project_id"):
         task_data["project_id"] = UUID(str(task_data["project_id"]))
 
