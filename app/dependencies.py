@@ -88,8 +88,12 @@ def require_owner_for_membership_change(
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    if not is_project_owner(project, current_user):
-        raise HTTPException(status_code=403, detail="Only project owners can modify members or owners")
+    # ✅ Allow if admin or owner
+    if current_user.role != "admin" and not is_project_owner(project, current_user):
+        raise HTTPException(
+            status_code=403,
+            detail="Only project owners or admins can modify members or owners"
+        )
 
     return current_user
 

@@ -17,6 +17,7 @@ class Task(TaskCreate):
     id: UUID
     created_at: datetime
     updated_at: datetime
+    created_by: str
     class Config:
        orm_mode = True 
 
@@ -35,6 +36,7 @@ class TaskRead(BaseModel):
     status: str
     assignee: Optional[str]
     priority: Optional[str]
+    created_by: str
 
     class Config:
        orm_mode = True 

@@ -98,8 +98,8 @@ def get_tasks_by_project(
 
     return task_repo.get_tasks_by_project(db, project_id)
 
-
 # --- Get Specific Task in Project ---
+
 @router.get("/projects/{project_id}/tasks/{task_id}", response_model=schemas.Task)
 def get_task_by_project_and_task_id(
     project_id: UUID,
